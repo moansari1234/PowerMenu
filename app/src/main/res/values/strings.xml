@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Power Menu</string>
+    <string name="accessibility_service_description">Allows opening the power menu (power off / shut down / restart) without using the physical power button.</string>
+</resources>

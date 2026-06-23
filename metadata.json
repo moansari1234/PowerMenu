@@ -1,0 +1,6 @@
+{
+  "name": "Power Menu",
+  "description": "Open the power off / shut down / restart menu without requiring a physical button usage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
