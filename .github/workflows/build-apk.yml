@@ -23,6 +23,12 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Download Official Gradle Wrapper Jar (Fix Potential Git Corruption)
+        run: |
+          mkdir -p gradle/wrapper
+          rm -f gradle/wrapper/gradle-wrapper.jar
+          curl -Lo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar
+
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
 
