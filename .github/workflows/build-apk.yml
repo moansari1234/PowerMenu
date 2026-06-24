@@ -21,19 +21,14 @@ jobs:
         with:
           distribution: 'zulu' # Zulu is reliable for Android SDKs
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Download Official Gradle Wrapper Jar (Fix Potential Git Corruption)
-        run: |
-          mkdir -p gradle/wrapper
-          rm -f gradle/wrapper/gradle-wrapper.jar
-          curl -Lo gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar
-
-      - name: Grant Execute Permission to Gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon
 
       - name: Locate and Rename APK
         run: |
