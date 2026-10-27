@@ -57,8 +57,8 @@ class MainActivity : ComponentActivity() {
                         PowerMenuScreen(
                             isServiceEnabled = isServiceEnabled.value,
                             isServiceRunning = isServiceRunning.value,
-                            onOpenSettings = { openAccessibilitySettings(this) },
-                            onTriggerPowerMenu = { triggerPowerMenu(this) },
+                            onOpenSettings = { openAccessibilitySettings(this@MainActivity) },
+                            onTriggerPowerMenu = { triggerPowerMenu(this@MainActivity) },
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
