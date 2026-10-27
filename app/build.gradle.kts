@@ -11,30 +11,40 @@ android {
     applicationId = "com.aistudio.powermenu.qzpxrt"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    // Release CI passes -PappVersionName=1.2.3 from the git tag; versionCode is derived so it always grows.
+    val appVersion = (project.findProperty("appVersionName") as String?) ?: "1.0.0"
+    versionName = appVersion
+    versionCode = appVersion.split(".").map { it.toIntOrNull() ?: 0 }.let { v ->
+      v.getOrElse(0) { 0 } * 10000 + v.getOrElse(1) { 0 } * 100 + v.getOrElse(2) { 0 }
+    }
+    buildConfigField("String", "UPDATE_REPO", "\"moansari1234/PowerMenu\"")
   }
 
-  // Release signing only when CI/local provides the upload key; otherwise assembleRelease
-  // still produces an unsigned, minified APK instead of failing.
-  val keystorePath = System.getenv("KEYSTORE_PATH")
-  if (keystorePath != null) {
-    signingConfigs {
-      create("release") {
-        storeFile = file(keystorePath)
-        storePassword = System.getenv("STORE_PASSWORD")
-        keyAlias = "upload"
-        keyPassword = System.getenv("KEY_PASSWORD")
-      }
+  // One stable key signs every build, so the in-app updater can install new versions over old ones
+  // (Android rejects an update signed with a different key). CI can swap in a private key through
+  // KEYSTORE_PATH / STORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD; otherwise the committed sideload key is used.
+  val envKeystore = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+  signingConfigs {
+    create("sideload") {
+      storeFile = if (envKeystore != null) file(envKeystore) else rootProject.file("keystore/sideload.p12")
+      storePassword = if (envKeystore != null) System.getenv("STORE_PASSWORD") else "sideload"
+      keyAlias = if (envKeystore != null) System.getenv("KEY_ALIAS") ?: "upload" else "sideload"
+      keyPassword = if (envKeystore != null) System.getenv("KEY_PASSWORD") else "sideload"
+      storeType = if (envKeystore != null && !envKeystore.endsWith(".p12")) "jks" else "pkcs12"
     }
   }
 
   buildTypes {
+    debug {
+      // Installs next to the release build instead of replacing it
+      applicationIdSuffix = ".debug"
+      signingConfig = signingConfigs.getByName("sideload")
+    }
     release {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      if (keystorePath != null) signingConfig = signingConfigs.getByName("release")
+      signingConfig = signingConfigs.getByName("sideload")
     }
   }
   compileOptions {
@@ -43,6 +53,7 @@ android {
   }
   buildFeatures {
     compose = true
+    buildConfig = true
   }
 }
 
@@ -57,5 +68,6 @@ dependencies {
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
   debugImplementation(libs.androidx.compose.ui.tooling)
 }
