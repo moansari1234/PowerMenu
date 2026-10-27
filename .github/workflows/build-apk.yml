@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          gradle assembleDebug --no-daemon 2>&1 | tee build.log
+          gradle assembleDebug assembleRelease --no-daemon 2>&1 | tee build.log
 
       - name: Surface Gradle error
         if: failure()
