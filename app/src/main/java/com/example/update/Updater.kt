@@ -89,8 +89,9 @@ object Updater {
     /** Downloads the APK and hands it to the system installer (which asks the user to confirm). */
     suspend fun downloadAndInstall(context: Context, release: Release) {
         if (!canInstall(context)) {
+            // Keep the release on screen so "Update" works straight after the user grants the permission.
             openInstallPermissionSettings(context)
-            _state.value = UpdateState.Failed("Allow \"Install unknown apps\" for this app, then tap Update again")
+            _state.value = UpdateState.Available(release)
             return
         }
         try {
