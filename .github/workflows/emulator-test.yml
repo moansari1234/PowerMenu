@@ -1,8 +1,16 @@
 name: Emulator test
 
-# Manual only: boots an Android emulator, installs the debug APK and drives it (scripts/emulator-test.sh).
+# Boots an Android emulator, installs the debug APK and drives it (scripts/emulator-test.sh).
+# Manual, or on review branches when the test itself changes (dispatch needs the file on main).
 on:
   workflow_dispatch:
+  push:
+    branches: ['review/**']
+    paths: ['.github/workflows/emulator-test.yml', 'scripts/emulator-*.sh']
+
+concurrency:
+  group: emulator-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
