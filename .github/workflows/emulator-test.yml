@@ -4,9 +4,14 @@ name: Emulator test
 # Manual, or on review branches when the test itself changes (dispatch needs the file on main).
 on:
   workflow_dispatch:
+    inputs:
+      old_version:
+        description: 'Updater test: build this old version (e.g. 0.9.0) and let it update itself from the latest release. Empty = app test.'
+        required: false
+        default: ''
   push:
     branches: ['review/**']
-    paths: ['.github/workflows/emulator-test.yml', 'scripts/emulator-*.sh']
+    paths: ['.github/workflows/emulator-test.yml', 'scripts/emulator-*.sh', 'app/**']
 
 concurrency:
   group: emulator-${{ github.ref }}
@@ -30,7 +35,7 @@ jobs:
           gradle-version: '9.3.1'
           validate-wrappers: false
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon ${{ inputs.old_version && format('-PappVersionName={0}', inputs.old_version) || '' }}
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -44,7 +49,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-boot-anim -no-snapshot
-          script: bash scripts/emulator-test.sh
+          script: ${{ inputs.old_version && format('bash scripts/update-test.sh {0}', inputs.old_version) || 'bash scripts/emulator-test.sh' }}
       - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
