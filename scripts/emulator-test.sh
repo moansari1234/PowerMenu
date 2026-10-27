@@ -1,7 +1,7 @@
 #!/bin/bash
 # Emulator test for PowerMenu: install, enable the accessibility service, open the power dialog.
 source scripts/emulator-lib.sh
-PKG=com.aistudio.powermenu.qzpxrt
+PKG=com.aistudio.powermenu.qzpxrt.debug  # debug builds carry the .debug suffix
 SVC=$PKG/com.example.PowerMenuAccessibilityService
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -W -n $PKG/com.example.MainActivity; sleep 3; shot main-disabled
