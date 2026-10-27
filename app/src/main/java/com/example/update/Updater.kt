@@ -7,6 +7,7 @@ import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import com.example.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,8 @@ object Updater {
 
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = _state
+
+    init { scope.launch { _state.collect { Log.i("Updater", it.toString().take(200)) } } }
 
     val currentVersion: String get() = BuildConfig.VERSION_NAME
     val repoUrl: String get() = "https://github.com/${BuildConfig.UPDATE_REPO}"
@@ -146,7 +149,7 @@ object Updater {
                 val url = a.getString("browser_download_url")
                 if (a.getString("name").endsWith(suffix) && url.startsWith(allowed)) {
                     return@withContext Release(tag, tag.removePrefix("v"), url, a.optLong("size"),
-                        json.optString("html_url", "https://github.com/${BuildConfig.UPDATE_REPO}/releases"), json.optString("body"))
+                        json.optString("html_url", "https://github.com/${BuildConfig.UPDATE_REPO}/releases"), plainNotes(json.optString("body")))
                 }
             }
             null
@@ -207,6 +210,12 @@ object Updater {
             session.commit(callback.intentSender)
         }
     }
+
+    /** Release notes as plain text: drops markdown marks, links and the auto-generated contributor list. */
+    internal fun plainNotes(md: String): String = md.substringBefore("## New Contributors")
+        .replace(Regex("\\*\\*|`|^#+\\s*", RegexOption.MULTILINE), "")
+        .replace(Regex(" by @\\S+ in https://\\S+"), "")
+        .replace(Regex("\\n{3,}"), "\n\n").trim()
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }
