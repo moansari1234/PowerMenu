@@ -55,7 +55,7 @@ object Updater {
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = _state
 
-    init { scope.launch { _state.collect { Log.i("Updater", it.toString().take(200)) } } }
+    init { scope.launch { _state.collect { if (it !is UpdateState.Downloading) Log.i("Updater", it.toString().take(200)) } } }
 
     val currentVersion: String get() = BuildConfig.VERSION_NAME
     val repoUrl: String get() = "https://github.com/${BuildConfig.UPDATE_REPO}"
