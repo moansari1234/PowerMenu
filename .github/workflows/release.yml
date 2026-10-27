@@ -1,0 +1,93 @@
+name: Release
+
+# Publishes a GitHub release with a signed release APK and a debug APK.
+# The in-app updater reads these releases, so every release must use the same signing key.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.0.1 (creates tag v1.0.1)'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+          validate-wrappers: false
+
+      - name: Version
+        id: v
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then V="${GITHUB_REF_NAME#v}"; else V="${{ inputs.version }}"; fi
+          [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error title=Bad version::'$V' is not X.Y.Z"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"; echo "tag=v$V" >> "$GITHUB_OUTPUT"
+
+      - name: Private signing key (optional)
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          # Without this secret the committed sideload key in keystore/ signs the APKs.
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build APKs
+        shell: bash
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -o pipefail
+          gradle assembleDebug assembleRelease --no-daemon -PappVersionName=${{ steps.v.outputs.version }} 2>&1 | tee build.log
+
+      - name: Surface Gradle error
+        if: failure()
+        shell: bash
+        run: |
+          { grep -m15 '^e: ' build.log; sed -n '/What went wrong/,/\* Try/p' build.log; } | head -40 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' | sed 's/^/::error title=Gradle build failed::/'
+          echo
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP: ${{ github.event.repository.name }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          mkdir dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/$APP-release.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/$APP-debug.apk"
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          for f in dist/*.apk; do echo "::notice title=APK::$(basename $f) $(stat -c%s $f) bytes"; done
+          cat > notes.md <<NOTES
+          **Download:** \`$APP-release.apk\` for everyday use. \`$APP-debug.apk\` is a debug build that installs alongside it.
+
+          Already installed? Open the app, tap the gear icon, then **Check for updates**.
+          NOTES
+          sed -i 's/^          //' notes.md
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "$APP $TAG" --notes-file notes.md --generate-notes --target "$GITHUB_SHA"
+          fi

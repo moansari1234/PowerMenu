@@ -38,6 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.MyApplicationTheme
+import com.example.update.UpdatePrompt
+import com.example.update.SettingsActivity
 
 class MainActivity : ComponentActivity() {
     private val isServiceEnabled = mutableStateOf(false)
@@ -47,20 +49,28 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    containerColor = Color(0xFF0C0E12) // Dark premium cosmic background
-                ) { innerPadding ->
-                    PowerMenuScreen(
-                        isServiceEnabled = isServiceEnabled.value,
-                        isServiceRunning = isServiceRunning.value,
-                        onOpenSettings = { openAccessibilitySettings(this) },
-                        onTriggerPowerMenu = { triggerPowerMenu(this) },
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            MyApplicationTheme { Box(Modifier.fillMaxSize()) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        containerColor = Color(0xFF0C0E12) // Dark premium cosmic background
+                    ) { innerPadding ->
+                        PowerMenuScreen(
+                            isServiceEnabled = isServiceEnabled.value,
+                            isServiceRunning = isServiceRunning.value,
+                            onOpenSettings = { openAccessibilitySettings(this@MainActivity) },
+                            onTriggerPowerMenu = { triggerPowerMenu(this@MainActivity) },
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
+                // Settings: app updates from GitHub releases
+                IconButton(
+                    onClick = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
+                    modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(4.dp)
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF8A99AD))
                 }
-            }
+                UpdatePrompt()
+            } }
         }
     }
 
