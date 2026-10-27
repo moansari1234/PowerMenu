@@ -16,5 +16,5 @@ dump; cp ui.xml power.xml
 check "power dialog opens (Power off / Restart shown)" "grep -qi 'power off\|restart\|Emergency' power.xml" "$(grep -o 'text=\"[^\"]\+\"' power.xml | head -8 | tr '\n' ' ')"
 adb shell input keyevent KEYCODE_BACK; sleep 1
 check "app crashed: none" "! adb logcat -d -b crash | grep -q $PKG" "$(adb logcat -d -b crash | grep -m3 -A3 FATAL | tr '\n' ' ')"
-check "service has no network permission" "! adb shell dumpsys package $PKG | grep -q 'android.permission.INTERNET'" "INTERNET present"
+check "updater permissions declared (INTERNET + install)" "adb shell dumpsys package $PKG | grep -q 'android.permission.INTERNET' && adb shell dumpsys package $PKG | grep -q 'android.permission.REQUEST_INSTALL_PACKAGES'" "updater permission missing"
 summary
