@@ -65,7 +65,7 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          sed -n '/What went wrong/,/\* Try/p' build.log | head -40 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' | sed 's/^/::error title=Gradle build failed::/'
+          { grep -m15 '^e: ' build.log; sed -n '/What went wrong/,/\* Try/p' build.log; } | head -40 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' | sed 's/^/::error title=Gradle build failed::/'
           echo
 
       - name: Publish release
