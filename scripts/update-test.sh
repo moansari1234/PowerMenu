@@ -25,4 +25,5 @@ tap content-desc=Settings; sleep 2
 tap text='Check for updates'; sleep 6; shot settings-latest
 check "Settings reports latest version after update" "screen_has 'latest version'" "saw: \$(texts)"
 check "app crashed: none" "! adb logcat -d -b crash | grep -q $PKG" "$(adb logcat -d -b crash | grep -m3 -A3 FATAL | tr '\n' ' ')"
+echo "::notice title=Updater log::$(adb logcat -d -s Updater:I PackageInstaller:* PackageInstallerSession:* ActivityTaskManager:W AndroidRuntime:E | grep -v "^-" | tail -25 | sed "s/%/%25/g" | awk 'BEGIN{ORS="%0A"}{print}')"
 summary
