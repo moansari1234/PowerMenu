@@ -1,6 +1,8 @@
 package com.example
 
+import android.accessibilityservice.AccessibilityButtonController
 import android.accessibilityservice.AccessibilityService
+import android.os.Build
 import android.content.Context
 import android.content.ComponentName
 import android.provider.Settings
@@ -17,12 +19,30 @@ class PowerMenuAccessibilityService : AccessibilityService() {
         // No interrupt action needed
     }
 
+    private var buttonCallback: Any? = null
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        // Without this, the accessibility button / shortcut the app tells users to set up
+        // does nothing: tapping it must open the power dialog.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val callback = object : AccessibilityButtonController.AccessibilityButtonCallback() {
+                override fun onClicked(controller: AccessibilityButtonController) {
+                    performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG)
+                }
+            }
+            accessibilityButtonController.registerAccessibilityButtonCallback(callback)
+            buttonCallback = callback
+        }
     }
 
     override fun onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            (buttonCallback as? AccessibilityButtonController.AccessibilityButtonCallback)?.let {
+                accessibilityButtonController.unregisterAccessibilityButtonCallback(it)
+            }
+        }
         super.onDestroy()
         if (instance == this) {
             instance = null
@@ -42,8 +62,7 @@ class PowerMenuAccessibilityService : AccessibilityService() {
          * Returns true if successful, false otherwise.
          */
         fun showPowerMenu(): Boolean {
-            // GLOBAL_ACTION_POWER_MENU is 6 in Android AccessibilityService
-            return instance?.performGlobalAction(6) ?: false
+            return instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG) ?: false
         }
 
         /**
