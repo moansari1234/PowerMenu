@@ -9,7 +9,7 @@ LATEST=$(curl -s https://api.github.com/repos/$GITHUB_REPOSITORY/releases/latest
 ver(){ adb shell dumpsys package $PKG | grep -m1 versionName | cut -d= -f2 | tr -d '\r'; }
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 check "old build $OLD installed" "[ \"\$(ver)\" = '$OLD' ]" "got $(ver)"
-adb shell appops set $PKG REQUEST_INSTALL_PACKAGES allow
+for i in $(seq 1 10); do adb shell appops set $PKG REQUEST_INSTALL_PACKAGES allow; adb shell appops get $PKG REQUEST_INSTALL_PACKAGES | grep -q allow && break; sleep 1; done
 # emulator networking can lag behind boot: wait until DNS resolves before the app checks GitHub
 for i in $(seq 1 30); do adb shell ping -c1 -W2 api.github.com >/dev/null 2>&1 && break; sleep 2; done
 adb shell am start -W -n $PKG/com.example.MainActivity; sleep 6; shot launch-prompt
