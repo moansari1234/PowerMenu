@@ -1,5 +1,8 @@
 name: Build Android APK
 
+permissions:
+  contents: read
+
 on:
   # One nightly build (2:30 AM IST), only if something was committed in the last 24h
   schedule:
@@ -62,6 +65,18 @@ jobs:
           # Put the real Gradle error into the run's annotations, so it is readable without opening raw logs
           sed -n '/What went wrong/,/\* Try/p' build.log | head -40 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' | sed 's/^/::error title=Gradle build failed::/'
           echo
+
+      - name: Report APK size, permissions, exported components
+        if: success()
+        shell: bash
+        run: |
+          # Security/perf check: what the shipped APK weighs and what the merged manifest grants
+          for apk in $(find app/build/outputs/apk -name '*.apk'); do
+            echo "::notice title=APK size::$(basename $apk) $(stat -c%s $apk) bytes"
+          done
+          m=$(find app/build/intermediates -path '*debug*' -name AndroidManifest.xml | grep -i merged | head -1)
+          echo "::notice title=Permissions::$(grep -o 'uses-permission[^>]*' $m | grep -o 'android:name="[^"]*"' | cut -d'"' -f2 | sort -u | tr '\n' ' ')"
+          echo "::notice title=Exported::$(tr '\n' ' ' < $m | grep -o '<\(activity\|service\|receiver\|provider\)[^>]*>' | grep 'exported="true"' | grep -o 'android:name="[^"]*"' | cut -d'"' -f2 | tr '\n' ' ')"
 
       - name: Locate and Rename APK
         run: |
