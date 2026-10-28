@@ -5,7 +5,7 @@
 
   Open your phone's power off / restart menu without the physical power button.
 
-  [![Download APK](https://img.shields.io/badge/Download-APK-FF3B30?style=for-the-badge&logo=android&logoColor=white)](https://github.com/moansari1234/PowerMenu/releases/latest/download/PowerMenu-release.apk)
+  [![Download APK](https://img.shields.io/badge/Download-APK-FF3B30?style=for-the-badge&logo=android&logoColor=white)](https://github.com/moansari1234/PowerMenu/releases/latest/download/PowerMenu.apk)
   [![Debug APK](https://img.shields.io/badge/Debug-APK-555555?style=for-the-badge&logo=android&logoColor=white)](https://github.com/moansari1234/PowerMenu/releases/latest/download/PowerMenu-debug.apk)
   [![Latest release](https://img.shields.io/github/v/release/moansari1234/PowerMenu?style=for-the-badge)](https://github.com/moansari1234/PowerMenu/releases/latest)
 </div>
@@ -20,7 +20,7 @@
 
 ## Install
 
-1. Download **[PowerMenu-release.apk](https://github.com/moansari1234/PowerMenu/releases/latest/download/PowerMenu-release.apk)** on your phone.
+1. Download **[PowerMenu.apk](https://github.com/moansari1234/PowerMenu/releases/latest/download/PowerMenu.apk)** on your phone.
 2. Open it. If Android asks, allow your browser or file manager to **install unknown apps**.
 3. Open **Power Menu** and tap **Grant Access In Settings**.
 4. In Accessibility settings, find **Power Menu** (under *Downloaded apps* or *Installed apps*) and turn it on.
@@ -32,7 +32,7 @@ Requires Android 7.0 (API 24) or newer. On Android 13+, sideloaded apps may firs
 
 | APK | Use it for | Package |
 | --- | --- | --- |
-| `PowerMenu-release.apk` | Everyday use. Minified, about 1 MB. | `com.aistudio.powermenu.qzpxrt` |
+| `PowerMenu.apk` | Everyday use. Minified, about 1 MB. | `com.aistudio.powermenu.qzpxrt` |
 | `PowerMenu-debug.apk` | Testing and bug reports. Installs next to the release build. | `com.aistudio.powermenu.qzpxrt.debug` |
 
 Each release also lists `SHA256SUMS.txt` so you can check a download.
