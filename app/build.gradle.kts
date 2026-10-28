@@ -20,31 +20,33 @@ android {
     buildConfigField("String", "UPDATE_REPO", "\"moansari1234/PowerMenu\"")
   }
 
-  // One stable key signs every build, so the in-app updater can install new versions over old ones
-  // (Android rejects an update signed with a different key). CI can swap in a private key through
-  // KEYSTORE_PATH / STORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD; otherwise the committed sideload key is used.
-  val envKeystore = System.getenv("KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+  // One private key signs every published build, so the in-app updater can install new versions over
+  // old ones (Android rejects an update signed with a different key). keystore/release.p12 is
+  // AES-256 encrypted; its random password lives only in the SIGNING_PASSWORD Actions secret (and
+  // the owner's password vault). Without it (local builds) the standard Android debug key is used.
+  val signingPassword = System.getenv("SIGNING_PASSWORD")?.takeIf { it.isNotBlank() }
   signingConfigs {
-    create("sideload") {
-      storeFile = if (envKeystore != null) file(envKeystore) else rootProject.file("keystore/sideload.p12")
-      storePassword = if (envKeystore != null) System.getenv("STORE_PASSWORD") else "sideload"
-      keyAlias = if (envKeystore != null) System.getenv("KEY_ALIAS") ?: "upload" else "sideload"
-      keyPassword = if (envKeystore != null) System.getenv("KEY_PASSWORD") else "sideload"
-      storeType = if (envKeystore != null && !envKeystore.endsWith(".p12")) "jks" else "pkcs12"
+    if (signingPassword != null) create("app") {
+      storeFile = rootProject.file("keystore/release.p12")
+      storeType = "pkcs12"
+      storePassword = signingPassword
+      keyAlias = "upload"
+      keyPassword = signingPassword
     }
   }
+  val appSigning = signingConfigs.findByName("app") ?: signingConfigs.getByName("debug")
 
   buildTypes {
     debug {
       // Installs next to the release build instead of replacing it
       applicationIdSuffix = ".debug"
-      signingConfig = signingConfigs.getByName("sideload")
+      signingConfig = appSigning
     }
     release {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("sideload")
+      signingConfig = appSigning
     }
   }
   compileOptions {

@@ -40,25 +40,14 @@ jobs:
           [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error title=Bad version::'$V' is not X.Y.Z"; exit 1; }
           echo "version=$V" >> "$GITHUB_OUTPUT"; echo "tag=v$V" >> "$GITHUB_OUTPUT"
 
-      - name: Private signing key (optional)
-        shell: bash
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
-        run: |
-          # Without this secret the committed sideload key in keystore/ signs the APKs.
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-          fi
-
       - name: Build APKs
         shell: bash
         env:
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          # Password for keystore/release.p12. Releases must never ship with a different key.
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           set -o pipefail
+          [ -n "$SIGNING_PASSWORD" ] || { echo "::error title=Signing::SIGNING_PASSWORD secret is missing"; exit 1; }
           gradle assembleDebug assembleRelease --no-daemon -PappVersionName=${{ steps.v.outputs.version }} 2>&1 | tee build.log
 
       - name: Surface Gradle error
