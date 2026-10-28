@@ -15,8 +15,7 @@
 - One big button opens Android's own **power dialog** (Power off, Restart, Emergency), handy when the power button is broken, worn or hard to reach.
 - Works through an **accessibility service** that only performs the "show power dialog" action. It does not read your screen, keystrokes or notifications.
 - Use Android's **accessibility shortcut** (floating button or volume-key shortcut) to open the power menu from anywhere.
-- **Built-in updates** from GitHub: the app checks for a new release (at most twice a day, can be turned off) and installs it in two taps.
-- About 1 MB, no ads, no tracking. The only network request is the update check to GitHub.
+- About 1 MB, no ads, no tracking. No internet permission at all: the app never goes online.
 
 ## Install
 
@@ -39,17 +38,13 @@ Each release also lists `SHA256SUMS.txt` so you can check a download.
 
 ## Updating
 
-Open the app and tap the **gear icon** (top right) → **Check for updates** → **Update to vX.Y.Z**, then confirm on Android's install screen. The first time, Android asks you to allow the app to install updates.
-
-With **Check for updates automatically** on, the app looks for a new version when it opens (at most every 12 hours) and offers it in a dialog. Release builds update from the release APK, debug builds from the debug APK.
+Open the app, tap the **gear icon** (top right) → **Download latest version**. That opens the [latest release](https://github.com/moansari1234/PowerMenu/releases/latest) in your browser; download `PowerMenu.apk` and install it over the old one. Your settings stay.
 
 ## Permissions
 
 | Permission | Why |
 | --- | --- |
 | Accessibility service | Open the system power dialog (`GLOBAL_ACTION_POWER_DIALOG`); it reads no window content |
-| Internet | Check GitHub for updates and download them |
-| Install packages | Hand a downloaded update to Android's installer (you always confirm) |
 
 ## Build from source
 
@@ -70,13 +65,13 @@ Push a tag, or run the **Release** workflow from the Actions tab with a version 
 git tag v1.0.1 && git push origin v1.0.1
 ```
 
-The workflow builds both APKs, signs them and publishes the GitHub release that the in-app updater reads. Versions must be `X.Y.Z`; the version code is derived from it, so every release must be higher than the last.
+The workflow builds both APKs, signs them and publishes the GitHub release. Versions must be `X.Y.Z`; the version code is derived from it, so every release must be higher than the last.
 
 **Signing.** Updates only install over an app signed with the same key. Published APKs are signed with a private key in `keystore/release.p12`, encrypted with a random password kept only in the `SIGNING_PASSWORD` Actions secret, so nobody else can sign an update. Certificate SHA-256: `88:BF:46:1A:11:68:A5:05:07:D5:F1:6C:BF:FD:C9:6D:2D:05:6A:D2:70:1F:CC:D4:58:A5:16:7C:1B:9F:78:D1`. Local builds without that secret use the standard Android debug key and won't update a published install. APKs from v1.0.x used an old public key: uninstall them once before installing v1.1.0 or later.
 
 ## Testing
 
-The **Emulator test** workflow boots an Android 15 emulator, installs the debug APK, enables the accessibility service and checks that the real power dialog opens (`scripts/emulator-test.sh`). Run it with an **old version** (for example `0.9.0`) to test the updater end to end (`scripts/update-test.sh`).
+The **Emulator test** workflow boots an Android 15 emulator, installs the debug APK, enables the accessibility service and checks that the real power dialog opens (`scripts/emulator-test.sh`).
 
 ## Project layout
 
@@ -84,5 +79,4 @@ The **Emulator test** workflow boots an Android 15 emulator, installs the debug 
 app/src/main/java/com/example/
   MainActivity.kt                       setup guide and power button
   PowerMenuAccessibilityService.kt      opens the power dialog
-  update/                               GitHub updater, Settings screen, install receiver
 ```
