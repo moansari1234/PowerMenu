@@ -35,6 +35,8 @@ jobs:
           gradle-version: '9.3.1'
           validate-wrappers: false
       - name: Build debug APK
+        env:
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}  # same key as releases, so the updater test can install over it
         run: gradle assembleDebug --no-daemon ${{ inputs.old_version && format('-PappVersionName={0}', inputs.old_version) || '' }}
       - name: Enable KVM
         run: |
