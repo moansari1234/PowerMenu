@@ -38,8 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.MyApplicationTheme
-import com.example.update.UpdatePrompt
-import com.example.update.SettingsActivity
 
 class MainActivity : ComponentActivity() {
     private val isServiceEnabled = mutableStateOf(false)
@@ -62,14 +60,13 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
-                // Settings: app updates from GitHub releases
+                // About: version and a link to download the latest APK
                 IconButton(
                     onClick = { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) },
                     modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(4.dp)
                 ) {
-                    Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color(0xFF8A99AD))
+                    Icon(Icons.Default.Settings, contentDescription = "About", tint = Color(0xFF8A99AD))
                 }
-                UpdatePrompt()
             } }
         }
     }
