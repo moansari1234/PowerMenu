@@ -14,7 +14,7 @@ else: print('- -')
 PY
 ); if [ "$X" = "-" ]; then echo "no node $*"; return 1; fi; adb shell input tap $X $Y; sleep 1.5; }
 screen_has(){ dump; grep -q -- "$1" ui.xml; }
-texts(){ grep -o '\(text\|content-desc\)="[^"]\+"' ui.xml | cut -d'"' -f2 | head -12 | tr '\n' '|'; }
+texts(){ grep -o '\(text\|content-desc\)="[^"]\+"' ui.xml | cut -d'"' -f2 | head -20 | tr '\n' '|'; }
 ok(){ RESULTS="$RESULTS%0APASS  $1"; }
 bad(){ RESULTS="$RESULTS%0AFAIL  $1"; echo "::error title=FAIL::$1"; FAILS=$((FAILS+1)); }
 check(){ if eval "$2"; then ok "$1"; else bad "$1 ($(eval echo \"$3\"))"; fi; }
