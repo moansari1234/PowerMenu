@@ -76,12 +76,12 @@ jobs:
           TAG: ${{ steps.v.outputs.tag }}
         run: |
           mkdir dist
-          cp app/build/outputs/apk/release/app-release.apk "dist/$APP-release.apk"
+          cp app/build/outputs/apk/release/app-release.apk "dist/$APP.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "dist/$APP-debug.apk"
           (cd dist && sha256sum *.apk > SHA256SUMS.txt)
           for f in dist/*.apk; do echo "::notice title=APK::$(basename $f) $(stat -c%s $f) bytes"; done
           cat > notes.md <<NOTES
-          **Download:** \`$APP-release.apk\` for everyday use. \`$APP-debug.apk\` is a debug build that installs alongside it.
+          **Download:** \`$APP.apk\` for everyday use. \`$APP-debug.apk\` is a debug build that installs alongside it.
 
           Already installed? Open the app, tap the gear icon, then **Check for updates**.
           NOTES

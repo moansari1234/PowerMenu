@@ -24,8 +24,10 @@ fun UpdatePrompt() {
             confirmButton = {
                 TextButton(onClick = {
                     dismissed = true
+                    // Without install permission, update() opens that system screen; don't cover it with Settings.
+                    val canInstall = Updater.canInstall(context)
                     Updater.update(context, s.release)
-                    context.startActivity(Intent(context, SettingsActivity::class.java)) // shows progress
+                    if (canInstall) context.startActivity(Intent(context, SettingsActivity::class.java)) // shows progress
                 }) { Text("Update") }
             },
             dismissButton = { TextButton(onClick = { dismissed = true }) { Text("Later") } }

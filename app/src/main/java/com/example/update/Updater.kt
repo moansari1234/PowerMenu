@@ -37,7 +37,7 @@ sealed interface UpdateState {
 
 /**
  * In-app updater fed by GitHub Releases of [BuildConfig.UPDATE_REPO].
- * Release builds install the `*-release.apk` asset, debug builds the `*-debug.apk` asset.
+ * Release builds install the plain `<App>.apk` asset, debug builds the `<App>-debug.apk` asset.
  * Android itself refuses an update signed with a different key, so a tampered APK cannot install.
  */
 object Updater {
@@ -142,13 +142,15 @@ object Updater {
             if (conn.responseCode != 200) error("HTTP ${conn.responseCode}")
             val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
             val tag = json.getString("tag_name")
-            val suffix = "-${BuildConfig.BUILD_TYPE}.apk"
+            // Release asset is "<App>.apk", debug is "<App>-debug.apk" ("-release.apk" still accepted for old releases).
+            fun wanted(name: String) = if (BuildConfig.DEBUG) name.endsWith("-debug.apk")
+                else name.endsWith(".apk") && !name.endsWith("-debug.apk")
             val assets = json.getJSONArray("assets")
             val allowed = "https://github.com/${BuildConfig.UPDATE_REPO}/releases/download/"
             for (i in 0 until assets.length()) {
                 val a = assets.getJSONObject(i)
                 val url = a.getString("browser_download_url")
-                if (a.getString("name").endsWith(suffix) && url.startsWith(allowed)) {
+                if (wanted(a.getString("name")) && url.startsWith(allowed)) {
                     return@withContext Release(tag, tag.removePrefix("v"), url, a.optLong("size"),
                         json.optString("html_url", "https://github.com/${BuildConfig.UPDATE_REPO}/releases"), plainNotes(json.optString("body")))
                 }
