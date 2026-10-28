@@ -17,7 +17,6 @@ android {
     versionCode = appVersion.split(".").map { it.toIntOrNull() ?: 0 }.let { v ->
       v.getOrElse(0) { 0 } * 10000 + v.getOrElse(1) { 0 } * 100 + v.getOrElse(2) { 0 }
     }
-    buildConfigField("String", "UPDATE_REPO", "\"moansari1234/PowerMenu\"")
   }
 
   // One private key signs every published build, so the in-app updater can install new versions over
